@@ -1,2 +1,4 @@
 (sym_lib_table
+  (version 7)
+  (lib (name "QuadCAN-FD-rescue")(type "KiCad")(uri "${KIPRJMOD}/QuadCAN-FD-rescue.kicad_sym")(options "")(descr ""))
 )
