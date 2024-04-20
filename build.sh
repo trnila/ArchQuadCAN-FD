@@ -4,7 +4,7 @@ set -ex
 ROOTFS_URL=http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
 ROOTFS_FILE=${ROOTFS_URL##*/}
 ROOTFS_PATH=$(realpath rootfs)
-DOWNLOAD_PATH=downloads
+DOWNLOAD_PATH=$(realpath downloads)
 
 unmount_rootfs() {
   mount | grep "$ROOTFS_PATH" | awk '{print $3}' | while read -r mnt; do
