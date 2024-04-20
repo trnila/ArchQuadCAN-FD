@@ -1,0 +1,7 @@
+[Match]
+Name=end0
+
+[Network]
+DHCP=yes
+DNSSEC=no
+MulticastDNS=yes

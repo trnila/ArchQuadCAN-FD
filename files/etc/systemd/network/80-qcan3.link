@@ -1,0 +1,5 @@
+[Match]
+Path=platform-fe215080.spi-cs-1
+
+[Link]
+Name=qcan3

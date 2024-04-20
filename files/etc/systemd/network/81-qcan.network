@@ -1,0 +1,8 @@
+[Match]
+Name=qcan*
+
+[CAN]
+BitRate=500K
+DataBitRate=1M
+FDMode=yes
+RestartSec=10

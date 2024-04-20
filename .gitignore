@@ -1,4 +1,6 @@
 *-backups
 *.kicad_prl
 fp-info-cache
-
+downloads/
+rootfs/
+archquadcan-fd.tar*

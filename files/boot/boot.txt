@@ -1,0 +1,16 @@
+# After modifying, run ./mkscr
+
+part uuid ${devtype} ${devnum}:2 uuid
+setenv bootargs console=ttyS1,115200 console=tty0 root=PARTUUID=${uuid} rw rootwait smsc95xx.macaddr="${usbethaddr}"
+
+# load base device tree and apply ArchQuadCAN-FD overlay
+setenv fdt_addr_overlay_r $ramdisk_addr_r
+load ${devtype} ${devnum}:${bootpart} ${fdt_addr_r} /dtbs/${fdtfile}
+load ${devtype} ${devnum}:${bootpart} ${fdt_addr_overlay_r} /dtbs/archquadcan-fd-overlay.dtbo
+fdt addr $fdt_addr_r
+fdt resize 8192
+fdt apply $fdt_addr_overlay_r
+
+load ${devtype} ${devnum}:${bootpart} ${kernel_addr_r} /Image
+load ${devtype} ${devnum}:${bootpart} ${ramdisk_addr_r} /initramfs-linux.img
+booti ${kernel_addr_r} ${ramdisk_addr_r}:${filesize} ${fdt_addr_r};
