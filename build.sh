@@ -29,6 +29,9 @@ sudo bsdtar -xpf "$DOWNLOAD_PATH/$ROOTFS_FILE" -C "$ROOTFS_PATH"
 mkdir -p "$DOWNLOAD_PATH/pkg"
 sudo mount --bind "$DOWNLOAD_PATH/pkg" "$ROOTFS_PATH/var/cache/pacman/pkg"
 
+# build mcp251xfd on host to speed up building time
+(cd mcp251xfd-xstby-dkms && SRCDEST="$DOWNLOAD_PATH" makepkg -f)
+
 sudo arch-chroot "$ROOTFS_PATH" bash << EOF
     set -ex
     sed -i '/CheckSpace/d' /etc/pacman.conf

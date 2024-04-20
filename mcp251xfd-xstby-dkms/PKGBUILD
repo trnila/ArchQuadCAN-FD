@@ -1,0 +1,18 @@
+pkgname=mcp251xfd-xstby-dkms
+pkgver=6.8.7
+pkgrel=1
+pkgdesc='mcp251xfd CAN driver with xstby patch'
+arch=('any')
+depends=('dkms')
+makedepends=('git')
+source=("https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${pkgver}.tar.xz"
+        'dkms.conf'
+        '0001-can-mcp251xfd-control-transceiver-standby-mode-via-X.patch')
+b2sums=('e8626a99c6c5769a8126d5ee1c7962c3df3c7a8c689193ffa864c4a4b8e72daeeaf22c3e3bb6ba5490eca3ef64c32a4a12980360a196444a53abadd791cd1855'
+        'b2eeef70b68e3abc285f0a009d760477913241eb5c85f56e3497400cd6c309e902248d20f636aaeaf7317a2cd98a897bce365b5cc15b7db9e2fc5db90e894de4'
+        '9adb75d6ff79548cda524240794638bb5cff6066fc69020b3c21d19989f1510f24f7e08028269fd57005ed5566c690f1b5c73399c4c8cafd1959f952c7427aaf')
+
+package() {
+  (cd linux-${pkgver} && patch -p1 < ../0001-can-mcp251xfd-control-transceiver-standby-mode-via-X.patch)
+  install -D -m0644 dkms.conf linux-${pkgver}/drivers/net/can/spi/mcp251xfd/* -t "${pkgdir}"/usr/src/mcp251xfd-xstby-${pkgver}
+}

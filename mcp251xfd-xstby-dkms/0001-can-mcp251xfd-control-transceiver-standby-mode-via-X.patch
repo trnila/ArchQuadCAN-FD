@@ -1,0 +1,138 @@
+From 141763194bdaadc443c14f4197b7723309c482a0 Mon Sep 17 00:00:00 2001
+From: Daniel Trnka <daniel.trnka@gmail.com>
+Date: Sat, 20 Apr 2024 16:13:12 +0000
+Subject: [PATCH] can: mcp251xfd: control transceiver standby mode via XSTBY
+ func on GPIO0
+
+GPIO0/XSTBY pin can be connected to transceiver STB pin to control
+standby mode of transceiver
+
+Function can be enabled via device property microchip,xstby
+---
+ .../bindings/net/can/microchip,mcp251x.txt    |  1 +
+ .../bindings/net/can/microchip,mcp251xfd.yaml |  3 ++
+ .../net/can/spi/mcp251xfd/mcp251xfd-core.c    | 40 ++++++++++---------
+ drivers/net/can/spi/mcp251xfd/mcp251xfd.h     |  1 +
+ 4 files changed, 27 insertions(+), 18 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/net/can/microchip,mcp251x.txt b/Documentation/devicetree/bindings/net/can/microchip,mcp251x.txt
+index 381f8fb3e..fc0201401 100644
+--- a/Documentation/devicetree/bindings/net/can/microchip,mcp251x.txt
++++ b/Documentation/devicetree/bindings/net/can/microchip,mcp251x.txt
+@@ -12,6 +12,7 @@ Required properties:
+ Optional properties:
+  - vdd-supply: Regulator that powers the CAN controller.
+  - xceiver-supply: Regulator that powers the CAN transceiver.
++ - microchip,xstby: Control transceiver standby mode via GPIO0 pin.
+  - gpio-controller: Indicates this device is a GPIO controller.
+  - #gpio-cells: Should be two. The first cell is the pin number and
+                 the second cell is used to specify the gpio polarity.
+diff --git a/Documentation/devicetree/bindings/net/can/microchip,mcp251xfd.yaml b/Documentation/devicetree/bindings/net/can/microchip,mcp251xfd.yaml
+index 2a98b2663..ed6812370 100644
+--- a/Documentation/devicetree/bindings/net/can/microchip,mcp251xfd.yaml
++++ b/Documentation/devicetree/bindings/net/can/microchip,mcp251xfd.yaml
+@@ -38,6 +38,9 @@ properties:
+   xceiver-supply:
+     description: Regulator that powers the CAN transceiver.
+ 
++  microchip,xstby:
++    description: Control transceiver standby mode via GPIO0 pin.
++
+   microchip,rx-int-gpios:
+     description:
+       GPIO phandle of GPIO connected to to INT1 pin of the MCP251XFD, which
+diff --git a/drivers/net/can/spi/mcp251xfd/mcp251xfd-core.c b/drivers/net/can/spi/mcp251xfd/mcp251xfd-core.c
+index 1d9057dc4..3e1d7e1bc 100644
+--- a/drivers/net/can/spi/mcp251xfd/mcp251xfd-core.c
++++ b/drivers/net/can/spi/mcp251xfd/mcp251xfd-core.c
+@@ -245,6 +245,18 @@ __mcp251xfd_chip_set_mode(const struct mcp251xfd_priv *priv,
+ 		return err;
+ 	}
+ 
++	if (priv->xstby) {
++		unsigned int val = 0;
++		if (mode_req != MCP251XFD_REG_CON_MODE_SLEEP)
++			val = MCP251XFD_REG_IOCON_XSTBYEN;
++
++		/* set GPIO0 as an output pin and enable/disable XSTBY */
++		err = regmap_update_bits(priv->map_reg, MCP251XFD_REG_IOCON,
++				MCP251XFD_REG_IOCON_XSTBYEN | MCP251XFD_REG_IOCON_TRIS0, val);
++		if (err)
++			return err;
++	}
++
+ 	if (mode_req == MCP251XFD_REG_CON_MODE_SLEEP || nowait)
+ 		return 0;
+ 
+@@ -586,39 +598,30 @@ static int mcp251xfd_set_bittiming(const struct mcp251xfd_priv *priv)
+ 
+ static int mcp251xfd_chip_rx_int_enable(const struct mcp251xfd_priv *priv)
+ {
+-	u32 val;
+-
+ 	if (!priv->rx_int)
+ 		return 0;
+ 
+-	/* Configure GPIOs:
+-	 * - PIN0: GPIO Input
+-	 * - PIN1: GPIO Input/RX Interrupt
++	/* Configure PIN1 as RX Interrupt
+ 	 *
+-	 * PIN1 must be Input, otherwise there is a glitch on the
++	 * PIN1 must be Input (TRIS1=1), otherwise there is a glitch on the
+ 	 * rx-INT line. It happens between setting the PIN as output
+ 	 * (in the first byte of the SPI transfer) and configuring the
+ 	 * PIN as interrupt (in the last byte of the SPI transfer).
+ 	 */
+-	val = MCP251XFD_REG_IOCON_PM0 | MCP251XFD_REG_IOCON_TRIS1 |
+-		MCP251XFD_REG_IOCON_TRIS0;
+-	return regmap_write(priv->map_reg, MCP251XFD_REG_IOCON, val);
++	return regmap_update_bits(priv->map_reg, MCP251XFD_REG_IOCON,
++			MCP251XFD_REG_IOCON_PM1 | MCP251XFD_REG_IOCON_TRIS1,
++			MCP251XFD_REG_IOCON_TRIS1);
+ }
+ 
+ static int mcp251xfd_chip_rx_int_disable(const struct mcp251xfd_priv *priv)
+ {
+-	u32 val;
+-
+ 	if (!priv->rx_int)
+ 		return 0;
+ 
+-	/* Configure GPIOs:
+-	 * - PIN0: GPIO Input
+-	 * - PIN1: GPIO Input
+-	 */
+-	val = MCP251XFD_REG_IOCON_PM1 | MCP251XFD_REG_IOCON_PM0 |
+-		MCP251XFD_REG_IOCON_TRIS1 | MCP251XFD_REG_IOCON_TRIS0;
+-	return regmap_write(priv->map_reg, MCP251XFD_REG_IOCON, val);
++	/* Configure PIN1 as GPIO Input without interrupt */;
++	return regmap_update_bits(priv->map_reg, MCP251XFD_REG_IOCON,
++			MCP251XFD_REG_IOCON_PM1 | MCP251XFD_REG_IOCON_TRIS1,
++			MCP251XFD_REG_IOCON_PM1 | MCP251XFD_REG_IOCON_TRIS1);
+ }
+ 
+ static int mcp251xfd_chip_ecc_init(struct mcp251xfd_priv *priv)
+@@ -2081,6 +2084,7 @@ static int mcp251xfd_probe(struct spi_device *spi)
+ 	priv->pll_enable = pll_enable;
+ 	priv->reg_vdd = reg_vdd;
+ 	priv->reg_xceiver = reg_xceiver;
++	priv->xstby = device_property_read_bool(&spi->dev, "microchip,xstby");
+ 
+ 	match = device_get_match_data(&spi->dev);
+ 	if (match)
+diff --git a/drivers/net/can/spi/mcp251xfd/mcp251xfd.h b/drivers/net/can/spi/mcp251xfd/mcp251xfd.h
+index 24510b3b8..bcdf3b2bd 100644
+--- a/drivers/net/can/spi/mcp251xfd/mcp251xfd.h
++++ b/drivers/net/can/spi/mcp251xfd/mcp251xfd.h
+@@ -657,6 +657,7 @@ struct mcp251xfd_priv {
+ 	bool pll_enable;
+ 	struct regulator *reg_vdd;
+ 	struct regulator *reg_xceiver;
++	bool xstby;
+ 
+ 	struct mcp251xfd_devtype_data devtype_data;
+ 	struct can_berr_counter bec;
+-- 
+2.44.0
+

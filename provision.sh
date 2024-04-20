@@ -16,7 +16,11 @@ pacman -Syu --noconfirm --needed \
   uboot-tools \
   cmake \
   ninja \
-  dtc
+  dtc \
+  linux-aarch64-headers
+
+# install DKMS mcp251xfd module with XSTBY patch
+pacman -U --noconfirm mcp251xfd-xstby-dkms/mcp251xfd-xstby-dkms*.pkg*
 
 # install can-utils
 (

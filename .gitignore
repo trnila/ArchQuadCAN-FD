@@ -4,3 +4,4 @@ fp-info-cache
 downloads/
 rootfs/
 archquadcan-fd.tar*
+*.pkg.tar*
