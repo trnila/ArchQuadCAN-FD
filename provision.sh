@@ -39,4 +39,8 @@ dtc -@ -I dts -O dtb archquadcan-fd-overlay.dts > /boot/dtbs/archquadcan-fd-over
 # compile u-boot script boot.txt into boot.scr
 (cd /boot && ./mkscr)
 
+# enable ACM serial console over USB
+mkdir -p /etc/systemd/system/getty.target.wants/
+ln -sf /usr/lib/systemd/system/serial-getty@.service /etc/systemd/system/getty.target.wants/serial-getty@ttyGS0.service
+
 echo "Provision successful"

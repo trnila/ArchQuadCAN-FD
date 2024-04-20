@@ -25,3 +25,12 @@ Build and deploy image with following steps:
 4. insert SD card to Raspberry Pi and power it on
 5. connect via `ssh root@archquadcan-fd.local`
 
+Alternatively you can connect USB to your computer and access Raspberry Pi via `g_cdc`:
+1. CDC ethernet via link-local IPv6 and DNS-SD
+   ```
+   $ ssh root@archquadcan-fd.local
+   ```
+2. ACM serial link
+   ```
+   $ minicom -D /dev/ttyACM0 -b 115200
+   ```
