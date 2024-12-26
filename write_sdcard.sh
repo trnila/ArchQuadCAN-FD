@@ -39,6 +39,8 @@ if [ -f ~/.ssh/id_rsa.pub ]; then
   chmod -R 600 "$MNT/root/.ssh"
 fi
 
+rm "$MNT/.dockerenv"
+
 sync
 
 echo "Image written"

@@ -13,17 +13,13 @@ ArchlinuxARM on Raspberry Pi [QuadCAN-FD Hat](https://github.com/Bytewerk/QuadCA
 
 
 ## Build and deploy ArchQuadCAN-FD image on Raspberry Pi
-Ensure the following dependencies are installed on your system before building:
-- `arch-chroot`
-- `qemu`
-- `binfmt_misc`
-
 Build and deploy image with following steps:
-1. run `./build.sh` to download and build configured image
-2. insert SD card to computer
-3. run `sudo ./write_sdcard.sh /dev/mmcblkX`, this step will also copy `~/.ssh/id_rsa.pub` to the image for ssh key-authentication
-4. insert SD card to Raspberry Pi and power it on
-5. connect via `ssh root@archquadcan-fd.local`
+1. (Optional) Run `docker run --rm --privileged multiarch/qemu-user-static --reset -p yes` if you are not having `qemu-user-static`
+2. run `./build.sh` to download and build configured image
+3. insert SD card to computer
+4. run `sudo ./write_sdcard.sh /dev/mmcblkX`, this step will also copy `~/.ssh/id_rsa.pub` to the image for ssh key-authentication
+5. insert SD card to Raspberry Pi and power it on
+6. connect via `ssh root@archquadcan-fd.local`
 
 Alternatively you can connect USB to your computer and access Raspberry Pi via `g_cdc`:
 1. CDC ethernet via link-local IPv6 and DNS-SD

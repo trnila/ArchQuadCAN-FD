@@ -1,0 +1,10 @@
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Target = etc/mkinitcpio.d/linux-aarch64.preset
+
+[Action]
+Description = Removing fallback initcpio...
+When = PostTransaction
+Exec = /usr/bin/sed -iE "s#\s*'fallback'##" /etc/mkinitcpio.d/linux-aarch64.preset
