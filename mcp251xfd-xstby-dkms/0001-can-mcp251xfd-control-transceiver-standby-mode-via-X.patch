@@ -1,32 +1,19 @@
-From 141763194bdaadc443c14f4197b7723309c482a0 Mon Sep 17 00:00:00 2001
+From c924d0192edaa64ac148f2d8882fa4b5d3a2a79a Mon Sep 17 00:00:00 2001
 From: Daniel Trnka <daniel.trnka@gmail.com>
-Date: Sat, 20 Apr 2024 16:13:12 +0000
-Subject: [PATCH] can: mcp251xfd: control transceiver standby mode via XSTBY
- func on GPIO0
+Date: Fri, 27 Dec 2024 13:43:34 +0100
+Subject: [PATCH] [PATCH] can: mcp251xfd: control transceiver standby mode via
+ XSTBY func on GPIO0
 
 GPIO0/XSTBY pin can be connected to transceiver STB pin to control
 standby mode of transceiver
 
 Function can be enabled via device property microchip,xstby
 ---
- .../bindings/net/can/microchip,mcp251x.txt    |  1 +
  .../bindings/net/can/microchip,mcp251xfd.yaml |  3 ++
  .../net/can/spi/mcp251xfd/mcp251xfd-core.c    | 40 ++++++++++---------
  drivers/net/can/spi/mcp251xfd/mcp251xfd.h     |  1 +
- 4 files changed, 27 insertions(+), 18 deletions(-)
+ 3 files changed, 26 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/net/can/microchip,mcp251x.txt b/Documentation/devicetree/bindings/net/can/microchip,mcp251x.txt
-index 381f8fb3e..fc0201401 100644
---- a/Documentation/devicetree/bindings/net/can/microchip,mcp251x.txt
-+++ b/Documentation/devicetree/bindings/net/can/microchip,mcp251x.txt
-@@ -12,6 +12,7 @@ Required properties:
- Optional properties:
-  - vdd-supply: Regulator that powers the CAN controller.
-  - xceiver-supply: Regulator that powers the CAN transceiver.
-+ - microchip,xstby: Control transceiver standby mode via GPIO0 pin.
-  - gpio-controller: Indicates this device is a GPIO controller.
-  - #gpio-cells: Should be two. The first cell is the pin number and
-                 the second cell is used to specify the gpio polarity.
 diff --git a/Documentation/devicetree/bindings/net/can/microchip,mcp251xfd.yaml b/Documentation/devicetree/bindings/net/can/microchip,mcp251xfd.yaml
 index 2a98b2663..ed6812370 100644
 --- a/Documentation/devicetree/bindings/net/can/microchip,mcp251xfd.yaml
@@ -42,7 +29,7 @@ index 2a98b2663..ed6812370 100644
      description:
        GPIO phandle of GPIO connected to to INT1 pin of the MCP251XFD, which
 diff --git a/drivers/net/can/spi/mcp251xfd/mcp251xfd-core.c b/drivers/net/can/spi/mcp251xfd/mcp251xfd-core.c
-index 1d9057dc4..3e1d7e1bc 100644
+index 3bc56517f..556da8a05 100644
 --- a/drivers/net/can/spi/mcp251xfd/mcp251xfd-core.c
 +++ b/drivers/net/can/spi/mcp251xfd/mcp251xfd-core.c
 @@ -245,6 +245,18 @@ __mcp251xfd_chip_set_mode(const struct mcp251xfd_priv *priv,
@@ -113,19 +100,19 @@ index 1d9057dc4..3e1d7e1bc 100644
  }
  
  static int mcp251xfd_chip_ecc_init(struct mcp251xfd_priv *priv)
-@@ -2081,6 +2084,7 @@ static int mcp251xfd_probe(struct spi_device *spi)
- 	priv->pll_enable = pll_enable;
+@@ -2096,6 +2099,7 @@ static int mcp251xfd_probe(struct spi_device *spi)
  	priv->reg_vdd = reg_vdd;
  	priv->reg_xceiver = reg_xceiver;
+ 	priv->devtype_data = *(struct mcp251xfd_devtype_data *)spi_get_device_match_data(spi);
 +	priv->xstby = device_property_read_bool(&spi->dev, "microchip,xstby");
  
- 	match = device_get_match_data(&spi->dev);
- 	if (match)
+ 	/* Errata Reference:
+ 	 * mcp2517fd: DS80000792C 5., mcp2518fd: DS80000789E 4.,
 diff --git a/drivers/net/can/spi/mcp251xfd/mcp251xfd.h b/drivers/net/can/spi/mcp251xfd/mcp251xfd.h
-index 24510b3b8..bcdf3b2bd 100644
+index dcbbd2b2f..41db88e82 100644
 --- a/drivers/net/can/spi/mcp251xfd/mcp251xfd.h
 +++ b/drivers/net/can/spi/mcp251xfd/mcp251xfd.h
-@@ -657,6 +657,7 @@ struct mcp251xfd_priv {
+@@ -667,6 +667,7 @@ struct mcp251xfd_priv {
  	bool pll_enable;
  	struct regulator *reg_vdd;
  	struct regulator *reg_xceiver;
@@ -134,5 +121,5 @@ index 24510b3b8..bcdf3b2bd 100644
  	struct mcp251xfd_devtype_data devtype_data;
  	struct can_berr_counter bec;
 -- 
-2.44.0
+2.25.1
 
