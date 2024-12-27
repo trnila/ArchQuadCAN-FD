@@ -7,6 +7,7 @@ fi
 set -ex
 DEV=$1
 MNT="mnt"
+SSH_KEY="/home/$SUDO_USER/.ssh/id_rsa.pub"
 
 cleanup() {
   umount "$MNT/boot" || true
@@ -33,9 +34,9 @@ mount "$DEV"p1 "$MNT/boot"
 
 tar -xpf archquadcan-fd.tar -C "$MNT" || true # fails on FAT32 missing permissions functionality
 
-if [ -f ~/.ssh/id_rsa.pub ]; then
+if [ -f "$SSH_KEY" ]; then
   mkdir -p "$MNT/root/.ssh"
-  cp ~/.ssh/id_rsa.pub $MNT/root/.ssh/authorized_keys
+  cp "$SSH_KEY" $MNT/root/.ssh/authorized_keys
   chmod -R 600 "$MNT/root/.ssh"
 fi
 
