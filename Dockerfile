@@ -75,8 +75,6 @@ RUN userdel -r alarm \
   # allow only ssh key auth and root user
   && sed -Ei 's/#?PermitRootLogin.+/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config \
   && sed -Ei 's/#?PasswordAuthentication.+/PasswordAuthentication no/' /etc/ssh/sshd_config \
-  # set hostname
-  && echo archquadcan-fd > /etc/hostname \
   # remove default network configurations
   && rm -f /etc/systemd/network/{en,eth}.network \
   # rpi4 is using mmcblk1

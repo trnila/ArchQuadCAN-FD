@@ -8,6 +8,7 @@ set -ex
 DEV=$1
 MNT="mnt"
 SSH_KEY="/home/$SUDO_USER/.ssh/id_rsa.pub"
+TARGET_HOSTNAME="archquadcan-fd"
 
 cleanup() {
   umount "$MNT/boot" || true
@@ -41,6 +42,7 @@ if [ -f "$SSH_KEY" ]; then
 fi
 
 rm "$MNT/.dockerenv"
+echo "$TARGET_HOSTNAME" > "$MNT/etc/hostname"
 
 sync
 
