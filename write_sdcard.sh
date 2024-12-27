@@ -24,13 +24,13 @@ trap cleanup EXIT
   echo w # save table
 ) | fdisk "$DEV" --noauto-pt --wipe-partitions always
 
-mkfs.fat "$DEV"p1
-mkfs.ext4 "$DEV"p2
+mkfs.fat "$DEV"1
+mkfs.ext4 "$DEV"2
 
 mkdir -p "$MNT"
-mount "$DEV"p2 "$MNT"
+mount "$DEV"2 "$MNT"
 mkdir -p "$MNT/boot"
-mount "$DEV"p1 "$MNT/boot"
+mount "$DEV"1 "$MNT/boot"
 
 tar -xpf archquadcan-fd.tar -C "$MNT" || true # fails on FAT32 missing permissions functionality
 
